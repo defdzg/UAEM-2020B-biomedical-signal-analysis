@@ -2,7 +2,7 @@
 clc;close all; clear all;
 
 %Señales
-a=load('Prac_ECG');%1 min de registro de ECG
+a=load('data/Prac_ECG');%1 min de registro de ECG
 s1=a.ECG_MAT;%Señal 1
 s2=a.ECG_MAT_2;%Señal 2
 s3=a.ECG_REST;%Señal 3
@@ -124,3 +124,14 @@ title('CARDIOTACOGRAMA ACTIVO VS TIEMPO DEL PARTICIPANTE 2');
 xlabel('Muestras(n)')
 ylabel('Tiempo (ms)')
 
+%% Uso de MarcusVolmer/HRV
+% Añadir el directorio del repositorio a la ruta del programa
+% addpath('D:\OneDrive - Universidad Autónoma del Estado de México\Documents\GitHub\HRV')
+        % class.funcion(rr)
+        % SDNN - Compute standard deviation of NN intervals
+        % pNN50 - Probability of intervals greater 50ms or smaller -50ms
+        % RMSSD - Compute root mean square of successive differences
+        % --- ¿Cuál usar RR PROMEDIO? ---
+        % HR - Compute the average heart rate
+        % rrx - Compute relative RR intervals
+        % rrHRV - Compute HRV based on relative RR intervals
