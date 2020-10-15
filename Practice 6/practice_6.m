@@ -124,7 +124,8 @@ title('CARDIOTACOGRAMA ACTIVO VS TIEMPO DEL PARTICIPANTE 2');
 xlabel('Muestras(n)')
 ylabel('Tiempo (ms)')
 
-%% Uso de MarcusVolmer/HRV
+
+%% Uso de HRV.m
 % Añadir el directorio del repositorio a la ruta del programa
 % addpath('D:\OneDrive - Universidad Autónoma del Estado de México\Documents\GitHub\HRV')
         % class.funcion(rr)
