@@ -189,7 +189,7 @@
         % Espectro de Frecuencia
             n = length(scr);
             fr = (0:n-1)*(fm/n);
-            power = abs(scr).^2/n;
+            power = abs(fft(scr)).^2/n;
     % Ruido 2
         ns2=a.ruido_2;
         s6(numel(ns2)) = 0;
@@ -198,7 +198,7 @@
         % Espectro de Frecuencia
             n2 = length(scr2);
             fr2 = (0:n2-1)*(fm/n2);
-            power2 = abs(scr2).^2/n2;
+            power2 = abs(fft(scr2)).^2/n2;
     % Graficas de señales con ruido
     figure('Name','Graficas de señales con ruido')
     %Ruido 1
@@ -208,7 +208,7 @@
         xlabel('Tiempo [s]')
         ylabel('Voltaje [mV]')
     subplot(2,2,2)
-        plot(fr,power)
+        plot(fr(1,1:size(fr,2)/2),power(1,1:size(power,2)/2))
         title('ESPECTRO DE FRECUENCIA CON RUIDO 1');
         xlabel('Frecuencia [Hz]')
         ylabel('Potencia')
@@ -219,7 +219,7 @@
         xlabel('Tiempo [s]')
         ylabel('Voltaje [mV]')
     subplot(2,2,4)
-        plot(fr2,power2)
+        plot(fr2(1,1:size(fr2,2)/2),power2(1,1:size(power2,2)/2))
         title('ESPECTRO DE FRECUENCIA CON RUIDO 2');
         xlabel('Frecuencia [Hz]')
         ylabel('Potencia')
