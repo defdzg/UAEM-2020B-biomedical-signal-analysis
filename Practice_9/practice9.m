@@ -1,14 +1,4 @@
 clc; clear all; close all;
-%% Parte 1: @Nataly
-% Calculen el potencial evocado visual (PEV) del archivo proporcionado por el personal docente (VEP.mat), 
-% este consiste de dos estructuras, las cuales una contiene 10 canales a los cuales se les aplicó un estímulo visual, 
-% para registrar el PEV. La segunda estructura contiene 120 valores, en los cuales se indica el instante en el cual 
-% se aplicó el estímulo visual en los canales. (Fm=512 Hz).
-% Sugerencias:
-% 1. A partir de la frecuencia de muestreo, procede a realizar un cálculo para obtener ventanas de -200 ms a +200 ms 
-% del estímulo.
-% 2. Apliquen técnicas de promediación.
-% 3. Indiquen en Matlab las ondas N75, P100 y N145.
 
 %% Parte 2: @Daniel
 % Ve a la página de https://physionet.org/content/chbmit/1.0.0/ y descarga una señal de EEG.
