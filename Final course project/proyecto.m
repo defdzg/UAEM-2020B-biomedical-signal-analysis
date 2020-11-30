@@ -1,57 +1,52 @@
 clc; clear all; close all;
 
+%% READING SIGNALS
 arrit = table2array(readtable('arritmias.csv'));
 norm=table2array(readtable('normal.csv'));
 
 for n = 1:size(norm,1)
-   a = strcat('s',num2str(n));
-   % ARRYTHMIA ECG SIGNAL
-   [arritmia.hr(n),arritmia.taco.(a)] = lpm(arrit(n,:),150); %HR
-%    arritmia.sdnn(n) = sdnn(arritmia.taco.(a)); %SDNN
-%    arritmia.rmssd(n) = rmssd(arritmia.taco.(a)); %RMSSD
-   % NORMAL ECG SIGNAL
-   [normal.hr(n),normal.taco.(a)] = lpm(norm(n,:),150); %HR
-%    normal.sdnn(n) = sdnn(normal.taco.(a)); %SDNN
-%    normal.rmssd(n) = rmssd(normal.taco.(a)); %RMSSD
-end
-clear a n;
-
-% Sample Entropy
-for x = 1:5
-a = strcat('s',num2str(x));
-%Normal ECG Signal
-y = normal.taco.(a); 
-n = length(y); % Length of the data
+a = strcat('s',num2str(n));
+%% ARRYTHMIA ECG SIGNAL
+% HR
+[arritmia.hr(n),arritmia.taco.(a)] = lpm(arrit(n,:),150); 
+% ENTROPY 
+y = arritmia.taco.(a); 
 r = 0.25 * std(y); %Similarity criterion
 m = 2; %Length of data that will be compared
-sample = sampenc(y,m,r); %Sample Entropy
-entropia.sample.normal(x) = sample(2,1);
-%Arrythmia ECG Signal
-y = arritmia.taco.(a); 
-n = length(a); % Length of the data
+sample = sampenc(y,m,r); % Sample entropy
+arritmia.entropia.sample(n) = sample(2,1);
+approx = apen(y,m,r); % Approximate entropy
+arritmia.entropia.approx(n) = approx;
+%% NORMAL ECG SIGNAL
+% HR
+[normal.hr(n),normal.taco.(a)] = lpm(norm(n,:),150); 
+% ENTROPY
+y = normal.taco.(a); 
 r = 0.25 * std(y); %Similarity criterion
-sample = sampenc(y,m,r); %Sample Entropy
-entropia.sample.arritmia(x) = sample(2,1);
+m = 2; %Length of data that will be compared
+sample = sampenc(y,m,r); % Sample entropy
+normal.entropia.sample(n) = sample(2,1);
+approx = apen(y,m,r); % Approximate entropy
+normal.entropia.approx(n) = approx;
 end
+clear a n y N r m sample approx;
 
-%% ESTADÍSTICA
+%% STATISTICS
 % MEAN
 normal.mean.hr = mean(normal.hr);
-normal.mean.sdnn = mean(normal.sdnn);
-normal.mean.rmssd = mean(normal.rmssd);
-
+normal.mean.sampen= mean(normal.entropia.sample);
+normal.mean.apen= mean(normal.entropia.approx);
 arritmia.mean.hr = mean(arritmia.hr);
-arritmia.mean.sdnn = mean(arritmia.sdnn);
-arritmia.mean.rmssd = mean(arritmia.rmssd);
+arritmia.mean.sampen= mean(arritmia.entropia.sample);
+arritmia.mean.apen= mean(arritmia.entropia.approx);
 % STD
 normal.std.hr = std(normal.hr);
-normal.std.sdnn = std(normal.sdnn);
-normal.std.rmssd = std(normal.rmssd);
-
+normal.std.sampen= std(normal.entropia.sample);
+normal.std.apen= std(normal.entropia.approx);
 arritmia.std.hr = std(arritmia.hr);
-arritmia.std.sdnn = std(arritmia.sdnn);
-arritmia.std.rmssd = std(arritmia.rmssd);
- %
+arritmia.std.sampen= std(arritmia.entropia.sample);
+arritmia.std.apen= std(arritmia.entropia.approx);
+
 %% PARAMETERS
 % HEART RATE
 function [LPM, tt1] = lpm(senal,FsN)
@@ -99,16 +94,45 @@ N=n*(n-1)/2;
 B=[N;B(1:(M-1))];
 p=A./B;
 e=-log(p);
+end
 
-% % SDNN
-% function [sdnn1] = sdnn(tt1)
-% RR1=mean(tt1);
-% sz1=size(tt1);
-% n1=sqrt((sum((tt1-RR1).^2))./(sz1-1));
-% sdnn1=n1(2);
-% end
-% % RMSSD
-% function [rmssd1] = rmssd(tt1)
-%   sz1=size(tt1);
-%   rmssd1=sqrt((sum((diff(tt1)).^2))/sz1(2));
-% end
+% APROXIMATE ENTROPY
+function [apent] = apen(a,n,r)
+data =a;
+for m=n:n+1; % run it twice, with window size differing by 1
+set = 0;
+count = 0;
+counter = 0;
+window_correlation = zeros(1,(length(data)-m+1));
+for i=1:(length(data))-m+1,
+    current_window = data(i:i+m-1); % current window stores the sequence to be compared with other sequences
+    
+    for j=1:length(data)-m+1,
+    sliding_window = data(j:j+m-1); % get a window for comparision with the current_window
+    
+    % compare two windows, element by element
+    % can also use some kind of norm measure; that will perform better
+    for k=1:m,
+        if((abs(current_window(k)-sliding_window(k))>r) && set == 0)
+            set = 1; % i.e. the difference between the two sequence is greater than the given value
+        end
+    end
+    if(set==0) 
+         count = count+1; % this measures how many sliding_windows are similar to the current_window
+    end
+    set = 0; % reseting 'set'
+    
+    end
+   counter(i)=count/(length(data)-m+1); % we need the number of similar windows for every cuurent_window
+   count=0;
+i;
+end  %  for i=1:(length(data))-m+1, ends here
+counter;  % this tells how many similar windows are present for each window of length m
+%total_similar_windows = sum(counter);
+%window_correlation = counter/(length(data)-m+1);
+correlation(m-n+1) = ((sum(counter))/(length(data)-m+1));
+ end % for m=n:n+1; % run it twice   
+   correlation(1);
+   correlation(2);
+apent = log(correlation(1)/correlation(2));
+end
