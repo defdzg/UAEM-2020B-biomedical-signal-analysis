@@ -1,45 +1,57 @@
+%% Análisis de la VFC en pacientes con taquiarritmia ventricular
+    % Adquisición y Tratamiento de Señales Fisiológicas
+    % Facultad de Medicina, Otoño 2020
+
+% Alumnos
+    % Fernández García Daniel Enrique
+    % Galeana Ruaro Clara Nataly
+    % Piña Martínez Michael Moncerrat
+    % Quiroz Salazar Alberto
+    
 clc; clear all; close all;
 
-%% READING SIGNALS
+%% LECTURA DE SEÑALES SELECCIONADAS
 arrit = table2array(readtable('arritmias.csv'));
 norm=table2array(readtable('normal.csv'));
 
 for n = 1:size(norm,1)
 a = strcat('s',num2str(n));
-%% ARRYTHMIA ECG SIGNAL
-% HR
-[arritmia.hr(n),arritmia.taco.(a)] = lpm(arrit(n,:),150); 
-% ENTROPY 
-y = arritmia.taco.(a); 
-r = 0.25 * std(y); %Similarity criterion
-m = 2; %Length of data that will be compared
-sample = sampenc(y,m,r); % Sample entropy
+%% SEÑALES DE TAQUIARRITMIA
+% FRECUENCIA CARDIACA
+[arritmia.hr(n),arritmia.taco.(a)] = lpm(arrit(n,:),250); 
+% ENTORPÍA
+y = arritmia.taco.(a);
+r = 0.2; %Criterio de similitúd
+% r = 0.2*std(arritmia.taco.(a)); %Criterio de similitúd
+m = 2; %Longitúd de la información a comparar
+sample = sampenc(y,m,r); % Entropía Muestral
 arritmia.entropia.sample(n) = sample(2,1);
-approx = apen(y,m,r); % Approximate entropy
+approx = apen(y,m,r); % Entropía Aproximada
 arritmia.entropia.approx(n) = approx;
-%% NORMAL ECG SIGNAL
-% HR
-[normal.hr(n),normal.taco.(a)] = lpm(norm(n,:),150); 
-% ENTROPY
-y = normal.taco.(a); 
-r = 0.25 * std(y); %Similarity criterion
-m = 2; %Length of data that will be compared
-sample = sampenc(y,m,r); % Sample entropy
+%% SEÑALES DE GRUPO CONTROL
+% FRECUENCIA CARDIACA
+[normal.hr(n),normal.taco.(a)] = lpm(norm(n,:),128); 
+% ENTORPÍA
+y = normal.taco.(a);
+r = 0.2; %Criterio de similitúd
+% r = 0.2*std(normal.taco.(a)); %Criterio de similitúd
+m = 2; %Longitúd de la información a comparar
+sample = sampenc(y,m,r); % Entropía Muestral
 normal.entropia.sample(n) = sample(2,1);
-approx = apen(y,m,r); % Approximate entropy
+approx = apen(y,m,r); % Entropía Aproximada
 normal.entropia.approx(n) = approx;
 end
 clear a n y N r m sample approx;
 
-%% STATISTICS
-% MEAN
+%% ESTRADÍSTICA
+% MEDIA
 normal.mean.hr = mean(normal.hr);
 normal.mean.sampen= mean(normal.entropia.sample);
 normal.mean.apen= mean(normal.entropia.approx);
 arritmia.mean.hr = mean(arritmia.hr);
 arritmia.mean.sampen= mean(arritmia.entropia.sample);
 arritmia.mean.apen= mean(arritmia.entropia.approx);
-% STD
+% DESVIACIÓN ESTANDAR
 normal.std.hr = std(normal.hr);
 normal.std.sampen= std(normal.entropia.sample);
 normal.std.apen= std(normal.entropia.approx);
@@ -47,8 +59,26 @@ arritmia.std.hr = std(arritmia.hr);
 arritmia.std.sampen= std(arritmia.entropia.sample);
 arritmia.std.apen= std(arritmia.entropia.approx);
 
-%% PARAMETERS
-% HEART RATE
+%% GRAFICAS
+hr = [normal.hr'; arritmia.hr'];
+sample = [normal.entropia.sample'; arritmia.entropia.sample'];
+approx = [normal.entropia.approx'; arritmia.entropia.approx'];
+g1 = repmat({'Normal'},5,1); g2 = repmat({'Arritmia'},5,1);
+groups = [g1; g2];
+figure, boxplot(hr,groups);
+title('Frecuencia Cardiaca')
+ylabel('Latidos por minuto')
+figure, boxplot(sample,groups); 
+title('Entropía Muestral')
+ylabel('Entropía')
+figure, boxplot(approx,groups);
+title('Entropía Aproximada')
+ylabel('Entropía')
+clear g1 g2 hr sample approx groups;
+
+
+%% PARAMETROS
+% FRECUENCIA CARDIACA
 function [LPM, tt1] = lpm(senal,FsN)
 if FsN==128
   [pks, locs]=findpeaks(senal,FsN,'MinPeakHeight',0.52);
@@ -59,8 +89,8 @@ tt1=1000.*diff(locs);
 LPM= length(pks);
 end
 
-% SAMPLE ENTROPY
-function [e,A,B]=sampenc(y,M,r);
+% ENTROPÍA MUESTRAL
+function [e,A,B]=sampenc(y,M,r)
 n=length(y);
 lastrun=zeros(1,n);
 run=zeros(1,n);
@@ -96,10 +126,10 @@ p=A./B;
 e=-log(p);
 end
 
-% APROXIMATE ENTROPY
+% ENTROPÍA APROXIMADA
 function [apent] = apen(a,n,r)
 data =a;
-for m=n:n+1; % run it twice, with window size differing by 1
+for m=n:n+1;
 set = 0;
 count = 0;
 counter = 0;
@@ -126,12 +156,10 @@ for i=1:(length(data))-m+1,
    counter(i)=count/(length(data)-m+1); % we need the number of similar windows for every cuurent_window
    count=0;
 i;
-end  %  for i=1:(length(data))-m+1, ends here
-counter;  % this tells how many similar windows are present for each window of length m
-%total_similar_windows = sum(counter);
-%window_correlation = counter/(length(data)-m+1);
+end  
+counter;  
 correlation(m-n+1) = ((sum(counter))/(length(data)-m+1));
- end % for m=n:n+1; % run it twice   
+ end 
    correlation(1);
    correlation(2);
 apent = log(correlation(1)/correlation(2));
